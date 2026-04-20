@@ -102,10 +102,10 @@ source ~/gvins_ws/devel/setup.bash
 
 # Run IC-GVINS node
 # You should change the path in both the configuration file and command line
-roslaunch ic_gvins ic_gvins.launch configfile:=/root/src/IC-GVINS/resources/dataset/building/IC-GVINS/gvins.yaml
+roslaunch ic_gvins ic_gvins.launch configfile:=/dataset/building/IC-GVINS/gvins.yaml
 
 # Open another terminal to play the ROS bag
-rosbag play /root/src/IC-GVINS/resources/dataset/building/building.bag
+rosbag play /dataset/building/building.bag
 ```
 
 ## 3 Datasets
