@@ -60,6 +60,8 @@ target_link_libraries(ic_gvins_core
         absl::time)
 
 # ROS interface
+set(CMAKE_PREFIX_PATH "/opt/ros/noetic")
+set(CMAKE_MODULE_PATH "${CMAKE_PREFIX_PATH}/share/catkin/cmake")
 find_package(catkin REQUIRED COMPONENTS
         message_generation
         roscpp

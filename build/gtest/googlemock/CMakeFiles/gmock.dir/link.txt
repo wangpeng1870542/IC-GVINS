@@ -1,0 +1,1 @@
+/usr/bin/g++-8 -fPIC  -Wall -O3 -g  -shared -Wl,-soname,libgmockd.so -o ../lib/libgmockd.so CMakeFiles/gmock.dir/src/gmock-all.cc.o  -Wl,-rpath,/root/gvins_ws/src/IC-GVINS/build/gtest/lib ../lib/libgtestd.so -lpthread 
