@@ -1,0 +1,43 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "catkin_make: build",
+            "type": "catkin_make",
+            "args": [
+                "--directory",
+                "/root/gvins_ws",
+                "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$catkin-gcc"
+            ]
+        },
+        {
+            "label": "Run Rosbag and Rviz",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "source /opt/ros/noetic/setup.bash && source /root/gvins_ws/devel/setup.bash && roslaunch ic_gvins ic_gvins.launch & sleep 5 && rosbag play /dataset/building/building.bag --clock"
+            ],
+            "isBackground": true,
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [{
+                "base": "$msCompile",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": ".*"
+                }
+            }]
+        }
+    ]
+}
