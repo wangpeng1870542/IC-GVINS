@@ -177,3 +177,47 @@ The source code is released under GPLv3 license.
 We are still working on improving the code. For any technical issues, please contact Dr. Hailiang Tang ([thl@whu.edu.cn](mailto:thl@whu.edu.cn)) or open an issue at this repository.
 
 For commercial usage, please contact Prof. Xiaoji Niu ([xjniu@whu.edu.cn](mailto:xjniu@whu.edu.cn)).
+
+
+
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug IC-GVINS (ROS Noetic)",
+            "type": "cppdbg",
+            "request": "launch",
+
+            // 【重要】程序路径：指向 catkin_make 生成的可执行文件
+            // 通常位于 devel/lib/<包名>/<节点名>
+            "program": "/root/gvins_ws/src/IC-GVINS/build/devel/lib/ic_gvins/ic_gvins_ros",
+
+            // 【重要】工作目录：通常设为 catkin 工作空间的根目录
+            "cwd": "/root/gvins_ws",
+
+            "args": ["_configfile:=/dataset/building/IC-GVINS/gvins.yaml"],
+            "stopAtEntry": false,
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+
+            // 【核心修复】环境变量配置
+            // 这里显式注入了 ROS 的库路径，解决 libxmlrpcpp.so 找不到的问题
+            "environment": [
+                {"name": "ROS_MASTER_URI", "value": "http://localhost:11311"},
+                {"name": "ROS_PACKAGE_PATH", "value": "/root/gvins_ws/src:/opt/ros/noetic/share"},
+                // 将 ROS 安装目录的 lib 文件夹加入动态链接库搜索路径
+                {"name": "LD_LIBRARY_PATH", "value": "/opt/ros/noetic/lib:${env:LD_LIBRARY_PATH}"}
+            ],
+
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

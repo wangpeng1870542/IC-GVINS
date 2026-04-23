@@ -4,8 +4,12 @@ project(ic_gvins)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Optimization
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3")
+# --- 修改开始 ---
+# 1. 开启调试模式 (-g)，生成调试信息
+# 2. 去掉 -O3 强制优化，使用 -O0 禁止优化，确保变量可见
+# 3. 保留 -Wall 用于显示警告
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -g -O0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -O0")
 
 # Build GVINS library
 include_directories(

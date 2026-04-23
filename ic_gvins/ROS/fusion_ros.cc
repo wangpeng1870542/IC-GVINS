@@ -92,8 +92,8 @@ void FusionROS::run() {
     }
 
     // GNSS outage configurations
-    isusegnssoutage_ = config["isusegnssoutage"].as<bool>();
-    gnssoutagetime_  = config["gnssoutagetime"].as<double>();
+    isusegnssoutage_ = config["isusegnssoutage"].as<bool>(); // 当 GNSS 信号丢失时，是否启用特殊的处理逻辑（比如纯惯导推算模式）
+    gnssoutagetime_  = config["gnssoutagetime"].as<double>(); // 它表示 GNSS 信号中断或失效的持续时间
     gnssthreshold_   = config["gnssthreshold"].as<double>();
 
     // Glog output path
@@ -110,6 +110,11 @@ void FusionROS::run() {
     }
 
     // subscribe message
+    /*简单来说，这三行代码做了三件事：
+    告诉系统：“我要听这三个话题的数据。”
+    建立连接：一旦有新数据发布，就自动触发对应的回调函数（Callback）。
+    设定缓冲：规定了每个话题最多允许积压多少条消息。
+    我们可以把它拆解为三个部分来详细解读：*/
     ros::Subscriber imu_sub   = nh.subscribe<sensor_msgs::Imu>(imu_topic, 200, &FusionROS::imuCallback, this);
     ros::Subscriber gnss_sub  = nh.subscribe<sensor_msgs::NavSatFix>(gnss_topic, 1, &FusionROS::gnssCallback, this);
     ros::Subscriber image_sub = nh.subscribe<sensor_msgs::Image>(image_topic, 20, &FusionROS::imageCallback, this);
@@ -165,13 +170,14 @@ void FusionROS::gnssCallback(const sensor_msgs::NavSatFixConstPtr &gnssmsg) {
     double unixsecond = gnssmsg->header.stamp.toSec();
     double weeksec;
     int week;
-    GpsTime::unix2gps(unixsecond, week, weeksec);
+    GpsTime::unix2gps(unixsecond, week, weeksec); // 将 ROS 消息头中的 Unix 时间戳（从 1970 年开始的秒数）转换为 GPS 时间（GPS 周 + 周内秒）
 
     gnss_.time = weeksec;
-
-    gnss_.blh[0] = gnssmsg->latitude * D2R;
+    // 纬度/经度：乘以 D2R（Degree to Radian，角度转弧度）。导航算法内部计算通常使用弧度制，所以这里要把常见的角度单位（如 31.2°）转换为弧度。
+    gnss_.blh[0] = gnssmsg->latitude * D2R; 
     gnss_.blh[1] = gnssmsg->longitude * D2R;
     gnss_.blh[2] = gnssmsg->altitude;
+    //ROS 的 position_covariance 是一个 3x3 的矩阵（按行优先排列的一维数组）
     gnss_.std[0] = sqrt(gnssmsg->position_covariance[4]); // N
     gnss_.std[1] = sqrt(gnssmsg->position_covariance[0]); // E
     gnss_.std[2] = sqrt(gnssmsg->position_covariance[8]); // D
@@ -179,11 +185,14 @@ void FusionROS::gnssCallback(const sensor_msgs::NavSatFixConstPtr &gnssmsg) {
     gnss_.isyawvalid = false;
 
     // Exception
+    // 含义：如果任意方向的标准差为 0，直接丢弃该数据。
+    //原因：标准差为 0 意味着协方差矩阵不可逆（奇异矩阵），在后续的优化算法中会导致除以零错误或矩阵求逆失败。这通常表示 GNSS 模块尚未定位成功或数据无效。
     if ((gnss_.std[0] == 0) || (gnss_.std[1] == 0) || (gnss_.std[2] == 0)) {
         return;
     }
 
     // Remove bad GNSS
+    // 阈值检查：检查东、北、地三个方向的标准差是否都小于设定的阈值（gnssthreshold_）。只有精度足够高的数据（例如 RTK 固定解）才会被接受。
     bool isoutage = false;
     if ((gnss_.std[0] < gnssthreshold_) && (gnss_.std[1] < gnssthreshold_) && (gnss_.std[2] < gnssthreshold_)) {
 
